@@ -81,6 +81,23 @@ class Turtle:
     def _ipython_display_(self):
         display(self._canvas)
     
+    def _move(self, to: DimPoint):
+        """Low-level move operation."""
+        start = self._current
+        self._current = to                        
+        with self._do_draw():
+            if self._polygon:
+                if self._pendown:
+                    self._canvas[1].line_to(*self._current)
+                else:
+                    self._canvas[1].move_to(*start)                
+            else:
+                if self._pendown:
+                    self._canvas[1].begin_path()
+                    self._canvas[1].move_to(*start)
+                    self._canvas[1].line_to(*self._current)
+                    self._canvas[1].stroke()
+        
     def new(self, size=(600, 300), **kwargs):
         # Render into the notebook
         self.__init__(size, **kwargs)
@@ -92,21 +109,10 @@ class Turtle:
 
     def move(self, distance: float):
         """Move the pen by distance."""
-        start = self._current
-        self._current = Turtle.DimPoint(x = self._current.x + math.cos(self._cur_heading) * distance,
-                        y = self._current.y + math.sin(self._cur_heading) * distance)                        
-        if self._polygon:
-            if self._pendown:
-                self._canvas[1].line_to(*self._current)
-            else:
-                self._canvas[1].move_to(*start)                
-        else:
-            with self._do_draw():
-                if self._pendown:
-                    self._canvas[1].begin_path()
-                    self._canvas[1].move_to(*start)
-                    self._canvas[1].line_to(*self._current)
-                    self._canvas[1].stroke()
+        self._move(Turtle.DimPoint(
+            x = self._current.x + math.cos(self._cur_heading) * distance,
+            y = self._current.y + math.sin(self._cur_heading) * distance)  
+        )
 
     def turn(self, degrees: float):
         """Turn the pen by degrees."""
@@ -141,20 +147,16 @@ class Turtle:
     def polygon(self):
         """Context manager for drawing a polygon."""
         self._polygon = True 
-        print('polygon begin_path()')
         self._canvas[1].begin_path()
+        self._canvas[1].move_to(*self._current)
         try:
             yield
         finally:
-            print('close_path()')
             self._canvas[1].close_path()
-            print('stroke()')
             self._canvas[1].stroke()
             if self._fill is not None:
-                print('fill()')
                 self._canvas[1].fill()
             self._polygon = False
-            print('smoker')    
 
     def find_faces(self) -> List[Dict[str, Union[Tuple[int, int], Sequence[Tuple[int, int]]]]]:
         """
@@ -196,7 +198,7 @@ class Turtle:
             rval.append(face)
         return rval
 
-    def write(self, text: str, font: str="24px sans-serif", text_align: str="center", line_color: str=None, fill_color: str=None):
+    def write(self, text: str, font: str="24px sans-serif", text_align: str="center"):
         """Write text.
         
         Arguments:
@@ -208,12 +210,6 @@ class Turtle:
             fill_color: The color of the fill of the text (defaults to the pen color)
         """
         with self._do_draw():
-            old_stroke = self._canvas[1].stroke_style
-            old_fill = self._canvas[1].fill_style
-            if line_color is not None:
-                self._canvas[1].stroke_style = line_color
-            if fill_color is not None:
-                self._canvas[1].fill_style = fill_color
             self._canvas[1].translate(self._current.x, self._current.y)
             self._canvas[1].rotate(self._cur_heading + math.pi/2)
             self._canvas[1].font = font
@@ -221,8 +217,6 @@ class Turtle:
             self._canvas[1].fill_text(text, 0, 0)
             self._canvas[1].stroke_text(text, 0, 0)
             self._canvas[1].reset_transform()
-            self._canvas[1].stroke_style = old_stroke
-            self._canvas[1].fill_style = old_fill
 
     @property
     def size(self) -> Tuple[int,int]:
@@ -267,20 +261,7 @@ class Turtle:
         else:
             p = Turtle.DimPoint._make(place)
 
-        start = self._current
-        self._current = self._to_native(p)
-        if self._polygon:
-            if self._pendown:
-                self._canvas[1].line_to(*self._current)
-            else:
-                self._canvas[1].move_to(*self._current)
-        else:
-            with self._do_draw():
-                if self._pendown:
-                    self._canvas[1].begin_path()
-                    self._canvas[1].move_to(*start)
-                    self._canvas[1].line_to(*self._current)
-                    self._canvas[1].stroke()
+        self._move(self._to_native(p))
 
     @property
     def heading(self) -> float:
