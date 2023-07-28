@@ -10,6 +10,8 @@ import numpy
 import PIL 
 import contextlib
 import face_recognition
+import colorsys 
+
 
 from collections import namedtuple
 from ipycanvas import Canvas, MultiCanvas, hold_canvas
@@ -46,6 +48,7 @@ class Turtle:
         self._show = True
         self._fill = None
         self._image = None
+        self._polygon = False
 
         # Render the turtle
         with self._do_draw():
@@ -58,6 +61,7 @@ class Turtle:
             yield 
             self._canvas[2].clear()
             if self._show:
+                # Redraw the Turtle
                 self._canvas[2].save()
                 self._canvas[2].translate(self._current.x, self._current.y)
                 self._canvas[2].rotate(self._cur_heading + math.pi / 2)
@@ -88,15 +92,21 @@ class Turtle:
 
     def move(self, distance: float):
         """Move the pen by distance."""
-        with self._do_draw():
-            start = self._current
-            self._current = Turtle.DimPoint(x = self._current.x + math.cos(self._cur_heading) * distance,
-                            y = self._current.y + math.sin(self._cur_heading) * distance)                        
+        start = self._current
+        self._current = Turtle.DimPoint(x = self._current.x + math.cos(self._cur_heading) * distance,
+                        y = self._current.y + math.sin(self._cur_heading) * distance)                        
+        if self._polygon:
             if self._pendown:
-                self._canvas[1].begin_path()
-                self._canvas[1].move_to(*start)
                 self._canvas[1].line_to(*self._current)
-                self._canvas[1].stroke()
+            else:
+                self._canvas[1].move_to(*start)                
+        else:
+            with self._do_draw():
+                if self._pendown:
+                    self._canvas[1].begin_path()
+                    self._canvas[1].move_to(*start)
+                    self._canvas[1].line_to(*self._current)
+                    self._canvas[1].stroke()
 
     def turn(self, degrees: float):
         """Turn the pen by degrees."""
@@ -126,6 +136,25 @@ class Turtle:
         self._image = numpy.array(PIL.Image.open(filename))
         self.size = (self._image.shape[1], self._image.shape[0])
         self._canvas[0].put_image_data(self._image)
+
+    @contextlib.contextmanager
+    def polygon(self):
+        """Context manager for drawing a polygon."""
+        self._polygon = True 
+        print('polygon begin_path()')
+        self._canvas[1].begin_path()
+        try:
+            yield
+        finally:
+            print('close_path()')
+            self._canvas[1].close_path()
+            print('stroke()')
+            self._canvas[1].stroke()
+            if self._fill is not None:
+                print('fill()')
+                self._canvas[1].fill()
+            self._polygon = False
+            print('smoker')    
 
     def find_faces(self) -> List[Dict[str, Union[Tuple[int, int], Sequence[Tuple[int, int]]]]]:
         """
@@ -166,24 +195,6 @@ class Turtle:
                 face[feature] = list(map(self._to_turtle, features[i][feature]))
             rval.append(face)
         return rval
-
-    def polygon(self, points: Sequence[Tuple[int, int]], fill=True):
-        """Draw a filled polygon.
-        
-        Arguments:
-
-            points: A list of 2D tuples of (x,y)
-
-        """
-        with self._do_draw():
-            self._canvas[1].begin_path()
-            self._canvas[1].move_to(*self._to_native(points[0]))
-            for point in points[1:]:
-                self._canvas[1].line_to(*self._to_native(point))
-            self._canvas[1].close_path()
-            self._canvas[1].stroke()
-            if self._fill is not None:
-                self._canvas[1].fill()
 
     def write(self, text: str, font: str="24px sans-serif", text_align: str="center", line_color: str=None, fill_color: str=None):
         """Write text.
@@ -256,14 +267,20 @@ class Turtle:
         else:
             p = Turtle.DimPoint._make(place)
 
-        with self._do_draw():
-            start = self._current
-            self._current = self._to_native(p)
+        start = self._current
+        self._current = self._to_native(p)
+        if self._polygon:
             if self._pendown:
-                self._canvas[1].begin_path()
-                self._canvas[1].move_to(*start)
                 self._canvas[1].line_to(*self._current)
-                self._canvas[1].stroke()
+            else:
+                self._canvas[1].move_to(*self._current)
+        else:
+            with self._do_draw():
+                if self._pendown:
+                    self._canvas[1].begin_path()
+                    self._canvas[1].move_to(*start)
+                    self._canvas[1].line_to(*self._current)
+                    self._canvas[1].stroke()
 
     @property
     def heading(self) -> float:
@@ -276,14 +293,21 @@ class Turtle:
         with self._do_draw():
             self._cur_heading = math.radians(-heading - 90) % (math.pi * 2)
 
+    def _hue_to_html(self, hue: int):
+        """Convert a color number from 0 to 365 to HTML"""
+        rgb = colorsys.hsv_to_rgb((hue % 365) / 364, 1, 1)    
+        return f"#{round(rgb[0]*255):02x}{round(rgb[1]*255):02x}{round(rgb[2]*255):02x}"
+
     @property
     def color(self) -> str:
         """Set the pen color using HTML color notation."""
         return self._canvas[1].stroke_style
 
     @color.setter
-    def color(self, color: str):
+    def color(self, color: Union[str, int]):
         """Set the pen color using HTML color notation."""
+        if color.__class__ in [int, float]:
+            color = self._hue_to_html(color)
         self._canvas[1].stroke_style = color
 
     @property
@@ -294,6 +318,8 @@ class Turtle:
     @fill.setter
     def fill(self, color: str):
         """Set the pen color using HTML color notation."""
+        if color.__class__ in [int, float]:
+            color = self._hue_to_html(color)
         self._fill = color
         if color is not None:
             self._canvas[1].fill_style = color
