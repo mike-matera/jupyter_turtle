@@ -82,6 +82,10 @@ class Turtle:
         self.__init__(size, **kwargs)
         display(self._canvas)
 
+    def clear(self):
+        """Clear all drawing."""
+        self._canvas[1].clear()
+
     def move(self, distance: float):
         """Move the pen by distance."""
         with self._do_draw():
