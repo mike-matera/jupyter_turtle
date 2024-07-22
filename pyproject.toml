@@ -3,7 +3,6 @@ name = "jupyter_turtle"
 version = "0.2.1"
 dependencies = [
     'ipycanvas',
-    'face_recognition',
     'importlib-metadata; python_version<"3.8"',
 ]
 

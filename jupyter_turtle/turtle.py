@@ -9,9 +9,8 @@ import contextlib
 import math
 import pathlib
 from collections import namedtuple
-from typing import Dict, List, Sequence, Tuple, Union
+from typing import Sequence, Tuple, Union
 
-import face_recognition
 import numpy
 import PIL
 from ipycanvas import Canvas, MultiCanvas, hold_canvas
@@ -29,13 +28,17 @@ class Turtle:
             size: Set the size of the canvas.
         """
         # Load the Turtle image
-        turtle = numpy.array(PIL.Image.open(pathlib.Path(__file__).parent / "turtle.png"))
+        turtle = numpy.array(
+            PIL.Image.open(pathlib.Path(__file__).parent / "turtle.png")
+        )
         self._turtle = Canvas(width=turtle.shape[0], height=turtle.shape[1])
         self._turtle.put_image_data(turtle)
 
         # Create a new Canvas
         self._size = Turtle.DimPoint(size[0], size[1])
-        self._canvas = MultiCanvas(n_canvases=3, width=self._size.x, height=self._size.y, **kwargs)
+        self._canvas = MultiCanvas(
+            n_canvases=3, width=self._size.x, height=self._size.y, **kwargs
+        )
 
         # Initialize properties
         self._current = self._to_native(Turtle.DimPoint(0, 0))
@@ -61,12 +64,16 @@ class Turtle:
                 self._canvas[2].save()
                 self._canvas[2].translate(self._current.x, self._current.y)
                 self._canvas[2].rotate(self._cur_heading + math.pi / 2)
-                self._canvas[2].draw_image(self._turtle, x=-15, y=-15, width=30, height=30)
+                self._canvas[2].draw_image(
+                    self._turtle, x=-15, y=-15, width=30, height=30
+                )
                 self._canvas[2].restore()
 
     def _to_native(self, point: Tuple[int, int]) -> DimPoint:
         """Convert Turtle coordinates to native ones."""
-        return Turtle.DimPoint(x=self._size.x // 2 + point[0], y=self._size.y // 2 - point[1])
+        return Turtle.DimPoint(
+            x=self._size.x // 2 + point[0], y=self._size.y // 2 - point[1]
+        )
 
     def _to_turtle(self, point: DimPoint) -> Tuple[int, int]:
         """Convert Turtle coordinates to native ones."""
@@ -120,7 +127,9 @@ class Turtle:
     def turn(self, degrees: float):
         """Turn the pen by degrees."""
         with self._do_draw():
-            self._cur_heading = (self._cur_heading - math.radians(degrees)) % (math.pi * 2)
+            self._cur_heading = (self._cur_heading - math.radians(degrees)) % (
+                math.pi * 2
+            )
 
     def pen_up(self):
         """Pick the pen up. Movements won't make lines."""
@@ -161,49 +170,9 @@ class Turtle:
                 self._canvas[1].fill()
             self._polygon = False
 
-    def find_faces(self) -> List[Dict[str, Union[Tuple[int, int], Sequence[Tuple[int, int]]]]]:
-        """
-        Find the faces in the background image. Returns list of dictionaries, one for each
-        face that's found. Face dictionaries have landmark names as keys and points as
-        values.
-
-        The face dictionary has two types of values. Single-point values and path values.
-        The single point values are:
-
-            "top_right", "top_left", "bottom_right", "bottom_left"
-
-        The points in these keys are the box where the face was found. The other values
-        are paths that form the contour of a facial feature. They are:
-
-            "bottom_lip", "top_lip", "left_eye", "right_eye", "left_eyebrow", "right_eyebrow",
-            "nose_tip", "nose_bridge", "chin"
-
-        Returns:
-
-            A list of face dictionaries.
-        """
-        if self._image is None:
-            return []
-
-        faces = face_recognition.face_locations(self._image, model="hog")
-        features = face_recognition.face_landmarks(self._image, face_locations=faces)
-        rval = []
-        for i in range(len(faces)):
-            face = {}
-            face.update(
-                {
-                    "top_right": self._to_turtle(Turtle.DimPoint(x=faces[i][1], y=faces[i][0])),
-                    "top_left": self._to_turtle(Turtle.DimPoint(x=faces[i][3], y=faces[i][0])),
-                    "bottom_left": self._to_turtle(Turtle.DimPoint(x=faces[i][3], y=faces[i][2])),
-                    "bottom_right": self._to_turtle(Turtle.DimPoint(x=faces[i][1], y=faces[i][2])),
-                }
-            )
-            for feature in features[i]:
-                face[feature] = list(map(self._to_turtle, features[i][feature]))
-            rval.append(face)
-        return rval
-
-    def write(self, text: str, font: str = "24px sans-serif", text_align: str = "center"):
+    def write(
+        self, text: str, font: str = "24px sans-serif", text_align: str = "center"
+    ):
         """Write text.
 
         Arguments:
