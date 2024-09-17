@@ -1,8 +1,12 @@
 [project]
 name = "jupyter_turtle"
-version = "0.2.1"
+authors = [
+    {name = "Mike Matera", email = "michael.matera@cabrillo.edu"},
+]
+version = "0.3.0"
 dependencies = [
-    'ipycanvas',
+    "ipycanvas",
+    "jupyterlab",
     'importlib-metadata; python_version<"3.8"',
 ]
 
@@ -15,3 +19,11 @@ jupyter_turtle = ["*.png"]
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = true

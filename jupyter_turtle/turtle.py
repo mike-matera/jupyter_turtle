@@ -16,10 +16,10 @@ import PIL
 from ipycanvas import Canvas, MultiCanvas, hold_canvas
 from IPython.display import display
 
+DimPoint = namedtuple("DimPoint", ["x", "y"])
+
 
 class Turtle:
-    DimPoint = namedtuple("DimPoint", ["x", "y"])
-
     def __init__(self, size=(600, 300), **kwargs):
         """Create a Turtle drawing canvas.
 
@@ -28,20 +28,18 @@ class Turtle:
             size: Set the size of the canvas.
         """
         # Load the Turtle image
-        turtle = numpy.array(
-            PIL.Image.open(pathlib.Path(__file__).parent / "turtle.png")
-        )
+        turtle = numpy.array(PIL.Image.open(pathlib.Path(__file__).parent / "turtle.png"))
         self._turtle = Canvas(width=turtle.shape[0], height=turtle.shape[1])
         self._turtle.put_image_data(turtle)
 
         # Create a new Canvas
-        self._size = Turtle.DimPoint(size[0], size[1])
+        self._size = DimPoint(size[0], size[1])
         self._canvas = MultiCanvas(
-            n_canvases=3, width=self._size.x, height=self._size.y, **kwargs
+            n_canvases=3, width=self._size.x, height=self._size.y, sync_image_data=True, **kwargs
         )
 
         # Initialize properties
-        self._current = self._to_native(Turtle.DimPoint(0, 0))
+        self._current = self._to_native(DimPoint(0, 0))
         self._cur_heading = (3 * math.pi) / 2  # in Canvas Y is negative.
         self._pendown = True
         self._show = True
@@ -64,16 +62,12 @@ class Turtle:
                 self._canvas[2].save()
                 self._canvas[2].translate(self._current.x, self._current.y)
                 self._canvas[2].rotate(self._cur_heading + math.pi / 2)
-                self._canvas[2].draw_image(
-                    self._turtle, x=-15, y=-15, width=30, height=30
-                )
+                self._canvas[2].draw_image(self._turtle, x=-15, y=-15, width=30, height=30)
                 self._canvas[2].restore()
 
     def _to_native(self, point: Tuple[int, int]) -> DimPoint:
         """Convert Turtle coordinates to native ones."""
-        return Turtle.DimPoint(
-            x=self._size.x // 2 + point[0], y=self._size.y // 2 - point[1]
-        )
+        return DimPoint(x=self._size.x // 2 + point[0], y=self._size.y // 2 - point[1])
 
     def _to_turtle(self, point: DimPoint) -> Tuple[int, int]:
         """Convert Turtle coordinates to native ones."""
@@ -99,26 +93,14 @@ class Turtle:
                     self._canvas[1].line_to(*self._current)
                     self._canvas[1].stroke()
 
-    def new(self, size=(600, 300), **kwargs):
-        # Render into the notebook
-        self.__init__(size, **kwargs)
-        display(self._canvas)
-
     def clear(self):
         """Clear all drawing."""
         self._canvas[1].clear()
 
-    @property
-    def move(self):
-        """
-        This is the docs.
-        """
-        return self._mmove
-
-    def _mmove(self, distance: float):
-        """Move the pen by distance."""
+    def move(self, distance: float):
+        """Move the turtle by distance pixels."""
         self._move(
-            Turtle.DimPoint(
+            DimPoint(
                 x=self._current.x + math.cos(self._cur_heading) * distance,
                 y=self._current.y + math.sin(self._cur_heading) * distance,
             )
@@ -127,9 +109,7 @@ class Turtle:
     def turn(self, degrees: float):
         """Turn the pen by degrees."""
         with self._do_draw():
-            self._cur_heading = (self._cur_heading - math.radians(degrees)) % (
-                math.pi * 2
-            )
+            self._cur_heading = (self._cur_heading - math.radians(degrees)) % (math.pi * 2)
 
     def pen_up(self):
         """Pick the pen up. Movements won't make lines."""
@@ -170,9 +150,7 @@ class Turtle:
                 self._canvas[1].fill()
             self._polygon = False
 
-    def write(
-        self, text: str, font: str = "24px sans-serif", text_align: str = "center"
-    ):
+    def write(self, text: str, font: str = "24px sans-serif", text_align: str = "center"):
         """Write text.
 
         Arguments:
@@ -200,13 +178,13 @@ class Turtle:
     @size.setter
     def size(self, newsize: Tuple[int, int]):
         """Resize the canvas element and adjust they layout size."""
-        self._size = Turtle.DimPoint(x=newsize[0], y=newsize[1])
+        self._size = DimPoint(x=newsize[0], y=newsize[1])
         with self._do_draw():
             self._canvas.width = self._size.x
             self._canvas.height = self._size.y
 
             # Move the turtle to the center
-            self._current = self._to_native(Turtle.DimPoint(0, 0))
+            self._current = self._to_native(DimPoint(0, 0))
             self._cur_heading = (3 * math.pi) / 2  # in Canvas Y is negative.
 
             if self._size.x >= 800:
@@ -228,12 +206,12 @@ class Turtle:
         """Goto a point in the coordinate space."""
         if len(place) == 0:
             raise ValueError("Goto where?")
-        elif isinstance(place[0], Turtle.DimPoint):
+        elif isinstance(place[0], DimPoint):
             p = place[0]
         elif isinstance(place[0], tuple):
-            p = Turtle.DimPoint._make(*place)
+            p = DimPoint._make(*place)
         else:
-            p = Turtle.DimPoint._make(place)
+            p = DimPoint._make(place)
 
         self._move(self._to_native(p))
 
@@ -287,3 +265,8 @@ class Turtle:
     def width(self, width: int):
         """Set the line thickness."""
         self._canvas[1].line_width = width
+
+    @property
+    def image(self) -> PIL.Image:
+        """Return an image of the Canvas."""
+        return PIL.Image.fromarray(self._image)
