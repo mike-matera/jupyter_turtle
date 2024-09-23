@@ -25,6 +25,20 @@ def _check_turtle():
     return _turtle
 
 
+def clear():
+    """Clear the canvas."""
+    tu = _check_turtle()
+    _turtle.stats = {
+        "moves": 0,
+        "jumps": 0,
+        "strokes": 0,
+        "turns": 0,
+        "words": [],
+        "_last_down": 0,
+    }
+    tu.clear()
+
+
 def move(distance: float):
     """Move the turtle by distance pixels."""
     tu = _check_turtle()
