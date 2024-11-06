@@ -3,15 +3,12 @@ name = "jupyter_turtle"
 authors = [
     {name = "Mike Matera", email = "michael.matera@cabrillo.edu"},
 ]
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
     "ipycanvas",
     "jupyterlab",
     'importlib-metadata; python_version<"3.8"',
 ]
-
-[tool.setuptools.packages.find]
-where = ["."]
 
 [tool.setuptools.package-data]
 jupyter_turtle = ["*.png"]
