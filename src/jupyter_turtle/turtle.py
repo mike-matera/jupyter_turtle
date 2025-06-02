@@ -28,14 +28,20 @@ class Turtle:
             size: Set the size of the canvas.
         """
         # Load the Turtle image
-        turtle = numpy.array(PIL.Image.open(pathlib.Path(__file__).parent / "turtle.png"))
+        turtle = numpy.array(
+            PIL.Image.open(pathlib.Path(__file__).parent / "turtle.png")
+        )
         self._turtle = Canvas(width=turtle.shape[0], height=turtle.shape[1])
         self._turtle.put_image_data(turtle)
 
         # Create a new Canvas
         self._size = DimPoint(size[0], size[1])
         self._canvas = MultiCanvas(
-            n_canvases=3, width=self._size.x, height=self._size.y, sync_image_data=True, **kwargs
+            n_canvases=3,
+            width=self._size.x,
+            height=self._size.y,
+            sync_image_data=True,
+            **kwargs,
         )
 
         # Initialize properties
@@ -62,12 +68,16 @@ class Turtle:
                 self._canvas[2].save()
                 self._canvas[2].translate(self._current.x, self._current.y)
                 self._canvas[2].rotate(self._cur_heading + math.pi / 2)
-                self._canvas[2].draw_image(self._turtle, x=-15, y=-15, width=30, height=30)
+                self._canvas[2].draw_image(
+                    self._turtle, x=-15, y=-15, width=30, height=30
+                )
                 self._canvas[2].restore()
 
     def _to_native(self, point: Tuple[int, int]) -> DimPoint:
         """Convert Turtle coordinates to native ones."""
-        return DimPoint(x=self._size.x // 2 + point[0], y=self._size.y // 2 - point[1])
+        return DimPoint(
+            x=self._size.x // 2 + point[0], y=self._size.y // 2 - point[1]
+        )
 
     def _to_turtle(self, point: DimPoint) -> Tuple[int, int]:
         """Convert Turtle coordinates to native ones."""
@@ -109,7 +119,9 @@ class Turtle:
     def turn(self, degrees: float):
         """Turn the pen by degrees."""
         with self._do_draw():
-            self._cur_heading = (self._cur_heading - math.radians(degrees)) % (math.pi * 2)
+            self._cur_heading = (self._cur_heading - math.radians(degrees)) % (
+                math.pi * 2
+            )
 
     def pen_up(self):
         """Pick the pen up. Movements won't make lines."""
@@ -150,7 +162,12 @@ class Turtle:
                 self._canvas[1].fill()
             self._polygon = False
 
-    def write(self, text: str, font: str = "24px sans-serif", text_align: str = "center"):
+    def write(
+        self,
+        text: str,
+        font: str = "24px sans-serif",
+        text_align: str = "center",
+    ):
         """Write text.
 
         Arguments:
@@ -229,7 +246,7 @@ class Turtle:
     def _hue_to_html(self, hue: int):
         """Convert a color number from 0 to 365 to HTML"""
         rgb = colorsys.hsv_to_rgb((hue % 365) / 364, 1, 1)
-        return f"#{round(rgb[0]*255):02x}{round(rgb[1]*255):02x}{round(rgb[2]*255):02x}"
+        return f"#{round(rgb[0] * 255):02x}{round(rgb[1] * 255):02x}{round(rgb[2] * 255):02x}"
 
     @property
     def color(self) -> str:

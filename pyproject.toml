@@ -3,11 +3,10 @@ name = "jupyter_turtle"
 authors = [
     {name = "Mike Matera", email = "michael.matera@cabrillo.edu"},
 ]
-version = "0.4.0"
+version = "1.0.0"
 dependencies = [
     "ipycanvas",
     "jupyterlab",
-    'importlib-metadata; python_version<"3.8"',
 ]
 
 [tool.setuptools.package-data]
@@ -18,7 +17,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.ruff]
-line-length = 100
+line-length = 79
 
 [tool.ruff.format]
 quote-style = "double"

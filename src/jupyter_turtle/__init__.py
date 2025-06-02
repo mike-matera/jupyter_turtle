@@ -80,7 +80,9 @@ def hide_turtle():
     tu.hide()
 
 
-def write(text: str, font: str = "24px sans-serif", text_align: str = "center"):
+def write(
+    text: str, font: str = "24px sans-serif", text_align: str = "center"
+):
     """Write text.
 
     Arguments:
