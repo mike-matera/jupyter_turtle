@@ -3,11 +3,25 @@ name = "jupyter_turtle"
 authors = [
     {name = "Mike Matera", email = "michael.matera@cabrillo.edu"},
 ]
-version = "1.0.0"
+description = "Simplified Turtle graphics for the Jupyter Notebook"
+readme = "README.md"
+requires-python = ">=3.9"
+version = "1.0.1"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
+
 dependencies = [
     "ipycanvas",
     "jupyterlab",
 ]
+
+[project.urls]
+Homepage = "https://github.com/mike-matera/jupyter_turtle"
+Issues = "https://github.com/mike-matera/jupyter_turtle/issues"
 
 [tool.setuptools.package-data]
 jupyter_turtle = ["*.png"]

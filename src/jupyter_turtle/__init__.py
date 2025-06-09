@@ -1,3 +1,4 @@
+import contextlib
 from typing import Sequence, Tuple, Union
 
 from IPython.display import display
@@ -47,7 +48,8 @@ def move(distance: float):
 
 
 def turn(degrees: float):
-    """Turn the pen by degrees."""
+    """Turn the pen by degrees. Positive numbers turn left, negative numbers
+    turn right."""
     tu = _check_turtle()
     tu.stats["turns"] += 1
     tu.turn(degrees)
@@ -92,7 +94,7 @@ def write(
         text_align: The alignment of the text relative to the turtle
     """
     tu = _check_turtle()
-    tu._words.append(text)
+    tu.stats["words"].append(text)
     tu.write(text, font, text_align)
 
 
@@ -127,6 +129,52 @@ def set_width(width: int):
     """Set the line thickness."""
     tu = _check_turtle()
     tu.width = width
+
+
+def set_size(width: int, height: int):
+    """Set the size of the arena."""
+    tu = _check_turtle()
+    tu.size = (width, height)
+
+
+@contextlib.contextmanager
+def polygon(
+    *,
+    color: str | None = None,
+    width: int | None = None,
+    fill: str | None = None,
+):
+    """
+    Draw a polygon by connecting moves together.
+
+    Example:
+
+    with tu.polygon():
+        tu.move(30)
+        tu.turn(45)
+        tu.move(30)
+        tu.turn(45)
+        tu.move(30)
+    """
+    tu = _check_turtle()
+    old_color = tu.color
+    old_width = tu.width
+    old_fill = tu.fill
+    try:
+        if color is not None:
+            tu.color = color
+        if fill is not None:
+            tu.fill = fill
+        if width is not None:
+            tu.width = width
+
+        with tu.polygon():
+            yield
+
+    finally:
+        tu.color = old_color
+        tu.fill = old_fill
+        tu.width = old_width
 
 
 def pre_run_cell(info):

@@ -9,7 +9,7 @@ import contextlib
 import math
 import pathlib
 from collections import namedtuple
-from typing import Sequence, Tuple, Union
+from collections.abc import Sequence
 
 import numpy
 import PIL
@@ -20,11 +20,10 @@ DimPoint = namedtuple("DimPoint", ["x", "y"])
 
 
 class Turtle:
-    def __init__(self, size=(600, 300), **kwargs):
+    def __init__(self, size: tuple[int, int] = (600, 300), **kwargs):
         """Create a Turtle drawing canvas.
 
         Arguments:
-            image: Load the image into the canvas.
             size: Set the size of the canvas.
         """
         # Load the Turtle image
@@ -59,7 +58,8 @@ class Turtle:
 
     @contextlib.contextmanager
     def _do_draw(self):
-        """Context manager that combines all drawing operations and re-renders the turtle."""
+        """Context manager that combines all drawing operations and re-renders
+        the turtle."""
         with hold_canvas(self._canvas):
             yield
             self._canvas[2].clear()
@@ -73,13 +73,13 @@ class Turtle:
                 )
                 self._canvas[2].restore()
 
-    def _to_native(self, point: Tuple[int, int]) -> DimPoint:
+    def _to_native(self, point: tuple[int, int]) -> DimPoint:
         """Convert Turtle coordinates to native ones."""
         return DimPoint(
             x=self._size.x // 2 + point[0], y=self._size.y // 2 - point[1]
         )
 
-    def _to_turtle(self, point: DimPoint) -> Tuple[int, int]:
+    def _to_turtle(self, point: DimPoint) -> tuple[int, int]:
         """Convert Turtle coordinates to native ones."""
         return (point[0] - self._size.x // 2, self._size.y // 2 - point[1])
 
@@ -188,12 +188,12 @@ class Turtle:
             self._canvas[1].reset_transform()
 
     @property
-    def size(self) -> Tuple[int, int]:
+    def size(self) -> tuple[int, int]:
         """Get the size of the canvas' color buffer (not layout size)."""
         return (self._size.x, self._size.y)
 
     @size.setter
-    def size(self, newsize: Tuple[int, int]):
+    def size(self, newsize: tuple[int, int]):
         """Resize the canvas element and adjust they layout size."""
         self._size = DimPoint(x=newsize[0], y=newsize[1])
         with self._do_draw():
@@ -214,12 +214,12 @@ class Turtle:
                 self._canvas.layout.min_width = "auto"
 
     @property
-    def pos(self) -> Tuple[int, int]:
+    def pos(self) -> tuple[int, int]:
         """Get the current location of the Turtle."""
         return self._to_turtle(self._current)
 
     @pos.setter
-    def pos(self, *place: Union[Tuple[int, int], Sequence[int], DimPoint]):
+    def pos(self, *place: tuple[int, int] | Sequence[int] | DimPoint):
         """Goto a point in the coordinate space."""
         if len(place) == 0:
             raise ValueError("Goto where?")
@@ -254,7 +254,7 @@ class Turtle:
         return self._canvas[1].stroke_style
 
     @color.setter
-    def color(self, color: Union[str, int]):
+    def color(self, color: str | int):
         """Set the pen color using HTML color notation."""
         if color.__class__ in [int, float]:
             color = self._hue_to_html(color)
@@ -276,6 +276,7 @@ class Turtle:
 
     @property
     def width(self) -> int:
+        """The line thickness."""
         return self._canvas[1].line_width
 
     @width.setter
