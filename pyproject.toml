@@ -1,12 +1,12 @@
 [project]
-name = "jupyter_turtle"
+name = "jupyter-turtle"
 authors = [
     {name = "Mike Matera", email = "michael.matera@cabrillo.edu"},
 ]
 description = "Simplified Turtle graphics for the Jupyter Notebook"
 readme = "README.md"
 requires-python = ">=3.9"
-version = "1.0.1"
+version = "1.0.2"
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
@@ -20,8 +20,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/mike-matera/jupyter_turtle"
-Issues = "https://github.com/mike-matera/jupyter_turtle/issues"
+Homepage = "https://github.com/mike-matera/jupyter-turtle"
+Issues = "https://github.com/mike-matera/jupyter-turtle/issues"
 
 [tool.setuptools.package-data]
 jupyter_turtle = ["*.png"]

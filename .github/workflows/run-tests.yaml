@@ -1,0 +1,13 @@
+name: Run Tests
+run-name: Run all tests in the tests/ directory.
+on: 
+  - push
+  - workflow_dispatch
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: |
+          uv run --frozen make -C tests/
